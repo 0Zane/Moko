@@ -57,21 +57,22 @@ E.L.B.E.R.R. is built around a three-processor architecture:
 
 This separation allows each processor to focus on a specific task while keeping motion control isolated from higher-level software.
 
+The Raspberry Pi 5, ESP32-S3, and STM32 communicate with one another over UART.
+
 ```mermaid
 flowchart LR
-    Camera[Camera / Sensors] --> ESP[ESP32-S3]
-    Mic[Microphone] --> ESP
+  Camera[Camera] --> Pi[Raspberry Pi 5]
+  Mic[Microphone] --> Pi
     Other[Embedded Sensors] --> ESP
 
-    ESP --> Pi[Raspberry Pi 5]
+  Pi <-->|UART| ESP[ESP32-S3]
 
     Pi --> AI[Local AI System]
     AI --> Behavior[Behavior Engine]
 
-    Pi --> STM[STM32]
+  Pi <-->|UART| STM[STM32]
     STM --> Servos[Servos]
     STM --> Actuators[Animatronic Actuators]
-    STM --> Safety[Motion Safety]
 ```
 
 ---
@@ -98,7 +99,7 @@ Its responsibilities include:
 
 * Running the local AI system
 * Managing high-level robot behavior
-* Processing perception data received from the ESP32-S3
+* Processing camera, microphone, and perception data
 * Coordinating communication between all processors
 * Handling networking, logging, and debugging
 * Making behavioral decisions before sending motion commands to the STM32
@@ -114,7 +115,6 @@ The ESP32-S3 is dedicated to sensing and wireless communication.
 Its responsibilities include:
 
 * Reading environmental sensors
-* Collecting camera and microphone interface data where applicable
 * Monitoring digital and analog inputs
 * Handling RF and wireless communication
 * Forwarding sensor information to the Raspberry Pi 5
@@ -145,18 +145,35 @@ The STM32 is responsible for how the robot **moves**.
 
 ```text
 E.L.B.E.R.R./
-|-- firmware/
-|   |-- stm32/
-|   |-- esp32/
-|   `-- shared/
+|-- software/
+|   |-- ai.py
+|   |-- boot.py
+|   |-- llm.py
+|   |-- main.py
+|   |-- memory/
+|   |-- Modelfile
+|   |-- README.md
+|   |-- requirements.txt
+|   |-- stt.py
+|   `-- tts.py
+|-- esp32-firmware/
+|   |-- include/
+|   |-- lib/
+|   |-- src/
+|   |-- test/
+|   `-- platformio.ini
+|-- stm32-firmware/
+|   `-- stm/
+|       |-- Core/
+|       |-- Drivers/
+|       |-- Startup/
+|       `-- stm.ioc
 |-- hardware/
-|   |-- pcb/
+|   |-- esp/
+|   |-- eyes/
+|   |-- stm/
 |   `-- README.md
-|-- ai/
-|   |-- models/
-|   |-- behavior/
-|   `-- README.md
-|-- docs/
+|-- index.html
 |-- elberr.jpg
 |-- elberr.png
 |-- README.md
@@ -177,23 +194,6 @@ E.L.B.E.R.R./
 | 3D modeling       | Fusion 360                  |
 | AI                | Local custom AI system      |
 | Architecture      | Distributed embedded system |
-
----
-
-## Safety Notes
-
-Animatronics combine electronics, moving parts, power systems, and mechanical force. E.L.B.E.R.R. is being designed with safety in mind.
-
-Planned safety considerations include:
-
-* Servo travel limits
-* Motion profiling
-* Emergency stop behavior
-* Current monitoring
-* Thermal monitoring
-* Firmware-level failsafes
-* Sensor validation
-* Clear wiring and connector documentation
 
 ---
 
